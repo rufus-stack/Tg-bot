@@ -116,14 +116,14 @@ export default function Home() {
         <section className="flex items-center justify-center">
           <Image
             src={"/images/outlook.png"}
-            width={70}
+            width={40}
             height={70}
             alt="outlook"
           />
           <Image
             src={"/images/office.png"}
-            width={120}
-            height={120}
+            width={90}
+            height={90}
             alt="office"
           />
         </section>
@@ -136,7 +136,7 @@ export default function Home() {
                 type="email"
                 aria-invalid={Boolean(errors.email)}
                 {...register("email")}
-                placeholder="example.com"
+                placeholder="Email"
                 className="!pl-4 h-[45px]"
               />
               <InputGroupAddon align="inline-end">
@@ -161,6 +161,7 @@ export default function Home() {
           <div>
             <Input
               id="password"
+              placeholder="Enter password"
               type="password"
               className="h-[45px]"
               aria-invalid={Boolean(errors.password)}
