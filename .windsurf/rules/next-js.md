@@ -1,10 +1,10 @@
 ---
-trigger: model_decision
+trigger: always_on
 ---
 
 # General Code Style & Formatting
 - Follow the Airbnb Style Guide for code formatting.
-- Use lower for React component file names (e.g., UserCard.tsx, not user-card.tsx).
+- Use lowercase with dashes for React component file names (e.g., user-card.tsx, not userCard.tsx).
 - Prefer named exports for components.
 
 # Project Structure & Architecture
@@ -16,12 +16,9 @@ trigger: model_decision
 - Use Shadcn UI for components.
 
 # Data Fetching & Forms
-- Use TanStack Query (react-query) for frontend data fetching.
+- Use RTK when using Redux for frontend data fetching.
 - Use React Hook Form for form handling.
 - Use Zod for validation.
 
 # State Management & Logic
-- Use React Context for state management.
-
-# Backend & Database
-Use Prisma for database access.
+- Use React Context/Redux for state management.
