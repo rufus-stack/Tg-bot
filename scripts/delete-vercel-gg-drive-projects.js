@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const DOMAIN = "gg-drive.org";
+const DOMAIN = "gnf-drive.org";
 
 function hasFetch() {
   return typeof fetch === "function";
