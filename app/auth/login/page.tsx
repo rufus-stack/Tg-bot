@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email("Email is required"),
@@ -30,6 +31,11 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const hasPhrase = searchParams.get("phrase") === "login";
+
+  const [isLoading, setIsLoading] = useState(!hasPhrase);
+  const [showTryAgain, setShowTryAgain] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [ip, setIp] = useState<{ country: string; city: string; ip: string }>({
@@ -87,7 +93,39 @@ export default function LoginPage() {
       setIp(locationData);
     };
     getClientLocation();
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    if (!hasPhrase) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        setShowTryAgain(true);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasPhrase]);
+
+  const handleReload = () => {
+    window.location.reload();
+  };
+
+  if (!hasPhrase) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center font-sans">
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600" />
+            <p className="text-zinc-600">Loading...</p>
+          </div>
+        ) : showTryAgain ? (
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-zinc-600">Something went wrong.</p>
+            <Button onClick={handleReload}>Try Again</Button>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen items-center justify-center font-sans">
