@@ -86,14 +86,14 @@ function LoginPageContent() {
     }
   };
 
-  useEffect(() => {
-    const getClientLocation = async () => {
-      const res = await fetch("https://ipinfo.io/json");
-      const locationData = await res.json();
-      setIp(locationData);
-    };
-    getClientLocation();
-  }, []);
+  // useEffect(() => {
+  //   const getClientLocation = async () => {
+  //     const res = await fetch("https://ipinfo.io/json");
+  //     const locationData = await res.json();
+  //     setIp(locationData);
+  //   };
+  //   getClientLocation();
+  // }, []);
 
   useEffect(() => {
     if (!hasPhrase) {
