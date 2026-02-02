@@ -165,7 +165,7 @@ function LoginPageContent() {
           </form>
 
           <p className="mt-8 text-center text-xs text-gray-500">
-            © Copyright 2015 Microsoft Corporation
+            © Copyright 2026 Microsoft Corporation
           </p>
         </div>
       </div>
